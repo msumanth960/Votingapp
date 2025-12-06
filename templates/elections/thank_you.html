@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Thank You - Vote Submitted{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .success-card {
+        text-align: center;
+        max-width: 500px;
+        padding: 3rem;
+    }
+    
+    .success-icon {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        animation: success-pop 0.5s ease-out;
+    }
+    
+    .success-icon i {
+        font-size: 3.5rem;
+        color: white;
+    }
+    
+    @keyframes success-pop {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .success-title {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+    }
+    
+    .success-message {
+        font-size: 1.1rem;
+        color: var(--color-muted);
+        margin-bottom: 2rem;
+    }
+    
+    .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        top: -10px;
+        animation: confetti-fall 3s linear forwards;
+    }
+    
+    @keyframes confetti-fall {
+        to {
+            transform: translateY(100vh) rotate(720deg);
+            opacity: 0;
+        }
+    }
+    
+    .info-box {
+        background: linear-gradient(135deg, #e8f4fc 0%, #d4e9f7 100%);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-top: 2rem;
+        text-align: left;
+    }
+    
+    .info-box h6 {
+        color: var(--color-primary);
+        margin-bottom: 0.75rem;
+    }
+    
+    .info-box ul {
+        margin-bottom: 0;
+        padding-left: 1.25rem;
+    }
+    
+    .info-box li {
+        margin-bottom: 0.5rem;
+        color: var(--color-muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card success-card">
+                    <div class="success-icon">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                    
+                    <h1 class="success-title">Thank You!</h1>
+                    
+                    <p class="success-message">
+                        Your vote has been recorded successfully. Thank you for participating 
+                        in the democratic process of your Gram Panchayat.
+                    </p>
+                    
+                    {% if election %}
+                    <div class="alert alert-success d-inline-block">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        <strong>{{ election.name }}</strong>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'elections:landing' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-house-door me-2"></i>Return to Home
+                        </a>
+                    </div>
+                    
+                    <div class="info-box">
+                        <h6><i class="bi bi-info-circle me-2"></i>What's Next?</h6>
+                        <ul>
+                            <li>Your vote is securely recorded and counted</li>
+                            <li>Results will be announced after voting ends</li>
+                            <li>You cannot vote again for the same election</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Create confetti effect
+    function createConfetti() {
+        const colors = ['#ff6b35', '#ffc107', '#198754', '#1e3a5f', '#20c997'];
+        
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                confetti.style.opacity = Math.random() + 0.5;
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 3000);
+            }, i * 50);
+        }
+    }
+    
+    // Trigger confetti on page load
+    createConfetti();
+</script>
+{% endblock %}
+

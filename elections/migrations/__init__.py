@@ -1,0 +1,2 @@
+# Elections app migrations
+

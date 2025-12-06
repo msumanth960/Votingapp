@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+
+{% block title %}Results - {{ village.name }} | Local Elections{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 2.5rem 0;
+        margin-top: -2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        height: 100%;
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        font-family: var(--font-heading);
+    }
+    
+    .stats-label {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+    }
+    
+    .result-card {
+        border-left: 4px solid var(--color-primary);
+    }
+    
+    .candidate-result {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        background: #f8f9fa;
+    }
+    
+    .candidate-result.winner {
+        background: linear-gradient(135deg, #d1f2eb 0%, #a8e6cf 100%);
+        border: 2px solid var(--color-success);
+    }
+    
+    .candidate-result .rank {
+        width: 40px;
+        height: 40px;
+        background: var(--color-primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .candidate-result.winner .rank {
+        background: var(--color-success);
+    }
+    
+    .candidate-info {
+        flex: 1;
+    }
+    
+    .candidate-name {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .candidate-party {
+        color: var(--color-muted);
+        font-size: 0.85rem;
+    }
+    
+    .vote-count {
+        text-align: right;
+    }
+    
+    .vote-count .count {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-primary);
+    }
+    
+    .vote-count .percentage {
+        font-size: 0.85rem;
+        color: var(--color-muted);
+    }
+    
+    .progress-bar-votes {
+        height: 8px;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+    }
+    
+    .ward-tab {
+        font-weight: 500;
+    }
+    
+    .ward-tab.active {
+        background: var(--color-primary) !important;
+        color: white !important;
+    }
+    
+    .winner-badge {
+        background: var(--color-success);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: var(--color-muted);
+    }
+    
+    .election-selector {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+    }
+    
+    .election-selector option {
+        color: var(--color-dark);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section class="results-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="mb-2">
+                    <i class="bi bi-bar-chart me-2"></i>Election Results
+                </h1>
+                <p class="lead mb-0 opacity-75">
+                    {{ village.full_location }}
+                </p>
+            </div>
+            <div class="col-lg-6 text-lg-end mt-3 mt-lg-0">
+                <form method="get" class="d-inline-block">
+                    <select name="election_id" class="election-selector" onchange="this.form.submit()">
+                        {% for e in all_elections %}
+                        <option value="{{ e.id }}" {% if e.id == election.id %}selected{% endif %}>
+                            {{ e.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                <a href="{% url 'elections:export_votes_csv' village.id %}?election_id={{ election.id }}" 
+                   class="btn btn-light ms-2">
+                    <i class="bi bi-download me-1"></i>Export CSV
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stats-card card">
+                <div class="stats-number">{{ total_votes }}</div>
+                <div class="stats-label">Total Votes Cast</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card card">
+                <div class="stats-number">{{ sarpanch_results|length }}</div>
+                <div class="stats-label">Sarpanch Candidates</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card card">
+                <div class="stats-number">{{ ward_results|length }}</div>
+                <div class="stats-label">Wards</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Sarpanch Results -->
+        <div class="col-lg-6 mb-4">
+            <div class="card result-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-badge me-2"></i>
+                        Sarpanch Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if sarpanch_results %}
+                    {% for candidate in sarpanch_results %}
+                    <div class="candidate-result {% if forloop.first %}winner{% endif %}">
+                        <div class="rank">{{ forloop.counter }}</div>
+                        <div class="candidate-info">
+                            <div class="candidate-name">
+                                {{ candidate.full_name }}
+                                {% if forloop.first %}
+                                <span class="winner-badge">
+                                    <i class="bi bi-trophy me-1"></i>Leading
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="candidate-party">
+                                {% if candidate.party_name %}{{ candidate.party_name }}{% else %}Independent{% endif %}
+                            </div>
+                            <div class="progress progress-bar-votes">
+                                {% if total_votes > 0 %}
+                                <div class="progress-bar {% if forloop.first %}bg-success{% else %}bg-primary{% endif %}" 
+                                     style="width: {% widthratio candidate.vote_count total_votes 100 %}%"></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="vote-count">
+                            <div class="count">{{ candidate.vote_count }}</div>
+                            <div class="percentage">
+                                {% if total_votes > 0 %}
+                                {% widthratio candidate.vote_count total_votes 100 %}%
+                                {% else %}
+                                0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="no-results">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-2">No results available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ward Member Results -->
+        <div class="col-lg-6 mb-4">
+            <div class="card result-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people me-2"></i>
+                        Ward Member Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if ward_results %}
+                    <!-- Ward Tabs -->
+                    <ul class="nav nav-pills mb-3" role="tablist">
+                        {% for ward_data in ward_results %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link ward-tab {% if forloop.first %}active{% endif %}" 
+                                    data-bs-toggle="pill" 
+                                    data-bs-target="#ward{{ ward_data.ward.id }}"
+                                    type="button">
+                                Ward {{ ward_data.ward.number }}
+                                <span class="badge bg-secondary ms-1">{{ ward_data.total_votes }}</span>
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <!-- Ward Content -->
+                    <div class="tab-content">
+                        {% for ward_data in ward_results %}
+                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                             id="ward{{ ward_data.ward.id }}">
+                            {% if ward_data.candidates %}
+                            {% for candidate in ward_data.candidates %}
+                            <div class="candidate-result {% if forloop.first %}winner{% endif %}">
+                                <div class="rank">{{ forloop.counter }}</div>
+                                <div class="candidate-info">
+                                    <div class="candidate-name">
+                                        {{ candidate.full_name }}
+                                        {% if forloop.first and candidate.vote_count > 0 %}
+                                        <span class="winner-badge">
+                                            <i class="bi bi-trophy me-1"></i>Leading
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="candidate-party">
+                                        {% if candidate.party_name %}{{ candidate.party_name }}{% else %}Independent{% endif %}
+                                    </div>
+                                    <div class="progress progress-bar-votes">
+                                        {% if ward_data.total_votes > 0 %}
+                                        <div class="progress-bar {% if forloop.first %}bg-success{% else %}bg-primary{% endif %}" 
+                                             style="width: {% widthratio candidate.vote_count ward_data.total_votes 100 %}%"></div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="vote-count">
+                                    <div class="count">{{ candidate.vote_count }}</div>
+                                    <div class="percentage">
+                                        {% if ward_data.total_votes > 0 %}
+                                        {% widthratio candidate.vote_count ward_data.total_votes 100 %}%
+                                        {% else %}
+                                        0%
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="text-center text-muted py-3">
+                                No candidates in this ward
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="no-results">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-2">No ward results available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Back Links -->
+    <div class="text-center mt-4">
+        <a href="{% url 'elections:results_dashboard' %}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+        </a>
+        <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-gear me-1"></i>Admin Panel
+        </a>
+    </div>
+</div>
+{% endblock %}
+

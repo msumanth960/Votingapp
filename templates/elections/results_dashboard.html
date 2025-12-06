@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+
+{% block title %}Results Dashboard - Local Elections{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 2.5rem 0;
+        margin-top: -2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-row {
+        margin-top: -4rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow-medium);
+    }
+    
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--color-primary) 0%, #2d5a87 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        font-family: var(--font-heading);
+    }
+    
+    .stats-label {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+    }
+    
+    .election-card {
+        border-left: 4px solid var(--color-primary);
+        transition: all 0.2s ease;
+    }
+    
+    .election-card:hover {
+        border-left-color: var(--color-secondary);
+    }
+    
+    .election-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .status-ongoing {
+        background: #d1f2eb;
+        color: #0d5437;
+    }
+    
+    .status-ended {
+        background: #e9ecef;
+        color: #6c757d;
+    }
+    
+    .status-upcoming {
+        background: #cff4fc;
+        color: #055160;
+    }
+    
+    .village-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        transition: background 0.2s ease;
+    }
+    
+    .village-item:last-child {
+        border-bottom: none;
+    }
+    
+    .village-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .village-info {
+        flex: 1;
+    }
+    
+    .village-name {
+        font-weight: 600;
+        color: var(--color-dark);
+    }
+    
+    .village-location {
+        font-size: 0.85rem;
+        color: var(--color-muted);
+    }
+    
+    .village-votes {
+        text-align: right;
+    }
+    
+    .vote-badge {
+        background: var(--color-primary);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section class="dashboard-header">
+    <div class="container">
+        <h1 class="mb-2">
+            <i class="bi bi-speedometer2 me-2"></i>Results Dashboard
+        </h1>
+        <p class="lead mb-0 opacity-75">
+            Overview of all elections and voting statistics
+        </p>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Stats Cards -->
+    <div class="row g-4 stats-row">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-icon">
+                    <i class="bi bi-check2-square"></i>
+                </div>
+                <div class="stats-number">{{ total_votes }}</div>
+                <div class="stats-label">Total Votes Cast</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stats-number">{{ total_voters }}</div>
+                <div class="stats-label">Registered Voters</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="stats-number">{{ elections|length }}</div>
+                <div class="stats-label">Elections</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Elections List -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        All Elections
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if elections %}
+                    <div class="list-group list-group-flush">
+                        {% for election in elections %}
+                        <div class="list-group-item election-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ election.name }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ election.start_time|date:"M d, Y" }} - {{ election.end_time|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="election-status status-{{ election.status|lower }}">
+                                        {{ election.status }}
+                                    </span>
+                                    <div class="mt-2">
+                                        <span class="badge bg-primary">{{ election.vote_count }} votes</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
+                        <p class="mt-2">No elections found</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Villages with Votes -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-geo-alt me-2"></i>
+                        Villages with Most Votes
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if villages_with_votes %}
+                    {% for village in villages_with_votes %}
+                    <a href="{% url 'elections:admin_results_village' village.id %}" class="village-item text-decoration-none">
+                        <div class="village-info">
+                            <div class="village-name">{{ village.name }}</div>
+                            <div class="village-location">
+                                {{ village.mandal.name }}, {{ village.mandal.district.name }}
+                            </div>
+                        </div>
+                        <div class="village-votes">
+                            <span class="vote-badge">{{ village.vote_count }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-2">No votes recorded yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                <i class="bi bi-lightning me-2"></i>Quick Actions
+            </h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <a href="{% url 'admin:elections_election_changelist' %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-calendar-plus me-2"></i>Manage Elections
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'admin:elections_candidate_changelist' %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-person-plus me-2"></i>Manage Candidates
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'admin:elections_village_changelist' %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-geo me-2"></i>Manage Villages
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'admin:elections_vote_changelist' %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-list-check me-2"></i>View All Votes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome - Local Elections Voting{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: var(--gradient-hero);
+        color: white;
+        padding: 5rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-title {
+        font-family: var(--font-heading);
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.25rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+        font-weight: 300;
+    }
+    
+    .election-badge {
+        display: inline-block;
+        background: var(--color-accent);
+        color: var(--color-dark);
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .feature-card {
+        text-align: center;
+        padding: 2rem 1.5rem;
+        background: white;
+        border-radius: var(--border-radius);
+        height: 100%;
+    }
+    
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, var(--color-primary) 0%, #2d5a87 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+        font-size: 1.75rem;
+        color: white;
+    }
+    
+    .feature-title {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        color: var(--color-primary);
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: var(--color-secondary);
+        color: white;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-right: 1rem;
+    }
+    
+    .steps-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .steps-list li {
+        display: flex;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .steps-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .no-election-card {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c2c7 100%);
+        border: none;
+    }
+    
+    .upcoming-election {
+        background: linear-gradient(135deg, #cff4fc 0%, #9eeaf9 100%);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .hero-section {
+            padding: 3rem 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7 hero-content">
+                {% if active_election %}
+                <span class="election-badge">
+                    <i class="bi bi-broadcast me-1"></i> Voting is LIVE
+                </span>
+                {% endif %}
+                <h1 class="hero-title">Local Elections<br>Voting System</h1>
+                <p class="hero-subtitle">
+                    Cast your vote for Sarpanch and Ward Member elections in your Gram Panchayat. 
+                    Simple, secure, and accessible voting for your local governance.
+                </p>
+                {% if active_election %}
+                <a href="{% url 'elections:select_location' %}" class="btn btn-warning btn-lg me-2 mb-2">
+                    <i class="bi bi-check2-square me-2"></i>Start Voting
+                </a>
+                <p class="small mt-3 mb-0" style="opacity: 0.8;">
+                    <i class="bi bi-calendar-event me-1"></i>
+                    {{ active_election.name }} • Ends {{ active_election.end_time|date:"M d, Y h:i A" }}
+                </p>
+                {% else %}
+                <div class="alert alert-light d-inline-block" role="alert">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No active election at the moment. Please check back later.
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-center">
+                <i class="bi bi-clipboard2-check" style="font-size: 12rem; opacity: 0.2;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title d-inline-block">How It Works</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card card">
+                    <div class="feature-icon">
+                        <i class="bi bi-geo-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Select Location</h3>
+                    <p class="text-muted mb-0">
+                        Choose your District, Mandal, and Village (Gram Panchayat) to access your local election.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card card">
+                    <div class="feature-icon">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                    <h3 class="feature-title">Choose Candidates</h3>
+                    <p class="text-muted mb-0">
+                        Select one Sarpanch candidate and one Ward Member candidate from your ward.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3 class="feature-title">Submit Securely</h3>
+                    <p class="text-muted mb-0">
+                        Verify with your mobile number and submit your vote. One person, one vote ensured.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Voting Steps Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h2 class="section-title">Voting Process</h2>
+                <p class="lead text-muted mb-4">
+                    Follow these simple steps to cast your vote in the local elections.
+                </p>
+                <ul class="steps-list">
+                    <li>
+                        <span class="step-number">1</span>
+                        <div>
+                            <strong>Select Your Location</strong><br>
+                            <small class="text-muted">District → Mandal → Village</small>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">2</span>
+                        <div>
+                            <strong>Vote for Sarpanch</strong><br>
+                            <small class="text-muted">Choose one candidate for village head</small>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">3</span>
+                        <div>
+                            <strong>Select Your Ward & Vote</strong><br>
+                            <small class="text-muted">Choose your ward and vote for Ward Member</small>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">4</span>
+                        <div>
+                            <strong>Verify & Submit</strong><br>
+                            <small class="text-muted">Enter mobile number and submit vote</small>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-calendar3 me-2"></i>Election Status
+                    </div>
+                    <div class="card-body">
+                        {% if active_election %}
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-success me-2">LIVE</span>
+                            <strong>{{ active_election.name }}</strong>
+                        </div>
+                        <p class="mb-2">
+                            <i class="bi bi-clock me-2 text-muted"></i>
+                            Started: {{ active_election.start_time|date:"M d, Y h:i A" }}
+                        </p>
+                        <p class="mb-3">
+                            <i class="bi bi-clock-history me-2 text-muted"></i>
+                            Ends: {{ active_election.end_time|date:"M d, Y h:i A" }}
+                        </p>
+                        <a href="{% url 'elections:select_location' %}" class="btn btn-primary">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Proceed to Vote
+                        </a>
+                        {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                            <p class="mt-3 mb-0 text-muted">No active election currently.</p>
+                        </div>
+                        {% if upcoming_elections %}
+                        <hr>
+                        <h6 class="mb-3"><i class="bi bi-calendar-plus me-2"></i>Upcoming Elections</h6>
+                        {% for election in upcoming_elections %}
+                        <div class="upcoming-election">
+                            <strong>{{ election.name }}</strong><br>
+                            <small class="text-muted">
+                                Starts: {{ election.start_time|date:"M d, Y h:i A" }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Information Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            <i class="bi bi-shield-lock text-primary me-2"></i>
+                            Your Vote is Secure
+                        </h4>
+                        <p class="card-text text-muted">
+                            Your mobile number is used only to ensure one-person-one-vote. 
+                            It will not be publicly exposed or shared with any third parties. 
+                            All votes are recorded securely with timestamp and audit trail.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            <i class="bi bi-people text-primary me-2"></i>
+                            Local Governance Matters
+                        </h4>
+                        <p class="card-text text-muted">
+                            Sarpanch and Ward Members are the backbone of local governance. 
+                            They represent your village at the Gram Panchayat level and make 
+                            decisions that directly affect your community's development.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

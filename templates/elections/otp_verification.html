@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify OTP - Local Elections{% endblock %}
+
+{% block extra_css %}
+<style>
+    .otp-container {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .otp-card {
+        max-width: 450px;
+        margin: 0 auto;
+    }
+    
+    .otp-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--color-primary) 0%, #2d5a87 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: white;
+        font-size: 2rem;
+    }
+    
+    .otp-input {
+        font-size: 2rem;
+        text-align: center;
+        letter-spacing: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .debug-otp {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .resend-link {
+        color: var(--color-primary);
+        text-decoration: none;
+    }
+    
+    .resend-link:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="otp-container">
+    <div class="container">
+        <div class="card otp-card">
+            <div class="card-body p-4 text-center">
+                <div class="otp-icon">
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+                
+                <h2 class="mb-2">Verify Your Mobile</h2>
+                <p class="text-muted mb-4">
+                    Enter the 6-digit OTP sent to your mobile number
+                </p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <input type="text" 
+                               name="otp" 
+                               class="form-control form-control-lg otp-input {% if form.otp.errors %}is-invalid{% endif %}"
+                               placeholder="000000"
+                               maxlength="6"
+                               pattern="[0-9]{6}"
+                               inputmode="numeric"
+                               autocomplete="one-time-code"
+                               required>
+                        {% if form.otp.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.otp.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check2-circle me-2"></i>Verify OTP
+                        </button>
+                    </div>
+                </form>
+                
+                {% if debug_otp %}
+                <div class="debug-otp">
+                    <small class="text-muted">
+                        <i class="bi bi-bug me-1"></i>
+                        Debug Mode - Your OTP is: <strong>{{ debug_otp }}</strong>
+                    </small>
+                </div>
+                {% endif %}
+                
+                <p class="mt-4 mb-0">
+                    <small class="text-muted">
+                        Didn't receive the OTP? 
+                        <a href="#" class="resend-link">Resend OTP</a>
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-focus and format OTP input
+    const otpInput = document.querySelector('.otp-input');
+    otpInput.focus();
+    
+    otpInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 6);
+        
+        // Auto-submit when 6 digits entered
+        if (this.value.length === 6) {
+            // Optional: auto-submit
+            // this.form.submit();
+        }
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Location - Local Elections{% endblock %}
+
+{% block extra_css %}
+<style>
+    .location-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 3rem 0;
+        margin-top: -2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .location-step {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .step-indicator {
+        width: 50px;
+        height: 50px;
+        background: var(--color-primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .step-indicator.active {
+        background: var(--color-secondary);
+        animation: pulse 1.5s infinite;
+    }
+    
+    .step-indicator.completed {
+        background: var(--color-success);
+    }
+    
+    .step-content {
+        flex: 1;
+    }
+    
+    .step-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .step-description {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    .form-select-lg {
+        padding: 1rem 1.25rem;
+        font-size: 1.1rem;
+    }
+    
+    .location-preview {
+        background: linear-gradient(135deg, #e8f4fc 0%, #d4e9f7 100%);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .location-preview h5 {
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+    }
+    
+    .location-breadcrumb {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .location-breadcrumb .location-item {
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+    
+    .location-breadcrumb .separator {
+        color: var(--color-muted);
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4); }
+        50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 107, 53, 0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section class="location-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="mb-2">
+                    <i class="bi bi-geo-alt me-2"></i>Select Your Location
+                </h1>
+                <p class="lead mb-0 opacity-75">
+                    Choose your District, Mandal, and Village to proceed with voting.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <span class="badge bg-light text-dark px-3 py-2">
+                    <i class="bi bi-calendar-check me-1"></i>
+                    {{ election.name }}
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body p-4">
+                    <!-- Progress Steps -->
+                    <div class="location-step">
+                        <div class="step-indicator active" id="step1Indicator">1</div>
+                        <div class="step-content">
+                            <p class="step-title">Select District</p>
+                            <p class="step-description">Choose your district from the dropdown</p>
+                        </div>
+                    </div>
+                    
+                    <div class="location-step">
+                        <div class="step-indicator" id="step2Indicator">2</div>
+                        <div class="step-content">
+                            <p class="step-title">Select Mandal</p>
+                            <p class="step-description">Choose your mandal within the selected district</p>
+                        </div>
+                    </div>
+                    
+                    <div class="location-step">
+                        <div class="step-indicator" id="step3Indicator">3</div>
+                        <div class="step-content">
+                            <p class="step-title">Select Village</p>
+                            <p class="step-description">Choose your village (Gram Panchayat)</p>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- Selection Form -->
+                    <form method="post" id="locationForm">
+                        {% csrf_token %}
+                        
+                        <!-- District Selection -->
+                        <div class="mb-4">
+                            <label for="district-select" class="form-label">
+                                <i class="bi bi-building me-1"></i> District
+                            </label>
+                            <select name="district" id="district-select" class="form-select form-select-lg" required>
+                                <option value="">-- Select District --</option>
+                                {% for district in form.fields.district.queryset %}
+                                <option value="{{ district.id }}">{{ district.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Mandal Selection -->
+                        <div class="mb-4">
+                            <label for="mandal-select" class="form-label">
+                                <i class="bi bi-diagram-3 me-1"></i> Mandal
+                            </label>
+                            <select name="mandal" id="mandal-select" class="form-select form-select-lg" required disabled>
+                                <option value="">-- Select Mandal --</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Village Selection -->
+                        <div class="mb-4">
+                            <label for="village-select" class="form-label">
+                                <i class="bi bi-house-door me-1"></i> Village (Gram Panchayat)
+                            </label>
+                            <select name="village" id="village-select" class="form-select form-select-lg" required disabled>
+                                <option value="">-- Select Village --</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Location Preview -->
+                        <div class="location-preview" id="locationPreview" style="display: none;">
+                            <h5><i class="bi bi-pin-map me-2"></i>Selected Location</h5>
+                            <div class="location-breadcrumb">
+                                <span class="location-item" id="previewDistrict"></span>
+                                <i class="bi bi-chevron-right separator"></i>
+                                <span class="location-item" id="previewMandal"></span>
+                                <i class="bi bi-chevron-right separator"></i>
+                                <span class="location-item" id="previewVillage"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                                <i class="bi bi-arrow-right-circle me-2"></i>Continue to Voting
+                            </button>
+                            <a href="{% url 'elections:landing' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Home
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Help Text -->
+            <div class="text-center mt-4 text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Make sure to select the correct location where you are registered to vote.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const districtSelect = document.getElementById('district-select');
+    const mandalSelect = document.getElementById('mandal-select');
+    const villageSelect = document.getElementById('village-select');
+    const submitBtn = document.getElementById('submitBtn');
+    const locationPreview = document.getElementById('locationPreview');
+    
+    // Step indicators
+    const step1 = document.getElementById('step1Indicator');
+    const step2 = document.getElementById('step2Indicator');
+    const step3 = document.getElementById('step3Indicator');
+    
+    // Update step indicators
+    function updateSteps(currentStep) {
+        [step1, step2, step3].forEach((step, index) => {
+            step.classList.remove('active', 'completed');
+            if (index < currentStep - 1) {
+                step.classList.add('completed');
+            } else if (index === currentStep - 1) {
+                step.classList.add('active');
+            }
+        });
+    }
+    
+    // Load mandals when district changes
+    districtSelect.addEventListener('change', function() {
+        const districtId = this.value;
+        
+        // Reset dependent dropdowns
+        mandalSelect.innerHTML = '<option value="">-- Select Mandal --</option>';
+        mandalSelect.disabled = true;
+        villageSelect.innerHTML = '<option value="">-- Select Village --</option>';
+        villageSelect.disabled = true;
+        submitBtn.disabled = true;
+        locationPreview.style.display = 'none';
+        
+        if (districtId) {
+            updateSteps(2);
+            
+            // Fetch mandals for selected district
+            fetch(`{% url 'elections:ajax_load_mandals' %}?district_id=${districtId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(mandal => {
+                        const option = document.createElement('option');
+                        option.value = mandal.id;
+                        option.textContent = mandal.name;
+                        mandalSelect.appendChild(option);
+                    });
+                    mandalSelect.disabled = false;
+                });
+            
+            // Update preview
+            document.getElementById('previewDistrict').textContent = 
+                districtSelect.options[districtSelect.selectedIndex].text;
+        } else {
+            updateSteps(1);
+        }
+    });
+    
+    // Load villages when mandal changes
+    mandalSelect.addEventListener('change', function() {
+        const mandalId = this.value;
+        
+        // Reset village dropdown
+        villageSelect.innerHTML = '<option value="">-- Select Village --</option>';
+        villageSelect.disabled = true;
+        submitBtn.disabled = true;
+        locationPreview.style.display = 'none';
+        
+        if (mandalId) {
+            updateSteps(3);
+            
+            // Fetch villages for selected mandal
+            fetch(`{% url 'elections:ajax_load_villages' %}?mandal_id=${mandalId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(village => {
+                        const option = document.createElement('option');
+                        option.value = village.id;
+                        option.textContent = village.name;
+                        villageSelect.appendChild(option);
+                    });
+                    villageSelect.disabled = false;
+                });
+            
+            // Update preview
+            document.getElementById('previewMandal').textContent = 
+                mandalSelect.options[mandalSelect.selectedIndex].text;
+        } else {
+            updateSteps(2);
+        }
+    });
+    
+    // Enable submit when village is selected
+    villageSelect.addEventListener('change', function() {
+        const villageId = this.value;
+        
+        if (villageId) {
+            submitBtn.disabled = false;
+            locationPreview.style.display = 'block';
+            
+            // Update preview
+            document.getElementById('previewVillage').textContent = 
+                villageSelect.options[villageSelect.selectedIndex].text;
+            
+            // Mark all steps as completed
+            [step1, step2, step3].forEach(step => {
+                step.classList.remove('active');
+                step.classList.add('completed');
+            });
+        } else {
+            submitBtn.disabled = true;
+            locationPreview.style.display = 'none';
+            updateSteps(3);
+        }
+    });
+</script>
+{% endblock %}
+
