@@ -2,28 +2,42 @@
 Django settings for local_elections project.
 
 Local Elections Voting System for Sarpanch and Ward Member Elections.
+Configured for deployment on Render with Neon PostgreSQL.
 """
 
+import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+# =============================================================================
+# Security Settings
+# =============================================================================
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# In production, use environment variable: os.environ.get('SECRET_KEY')
-SECRET_KEY = 'django-insecure-change-this-in-production-local-elections-2025'
+# SECRET_KEY: Use environment variable in production
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG: False in production (Render sets this)
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+# ALLOWED_HOSTS: Add your Render domain
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.onrender.com',  # Allows all Render subdomains
+]
 
-# CSRF trusted origins for ngrok and other proxies
+# Add custom domain from environment if set
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# CSRF trusted origins for Render and other proxies
 CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
     'https://*.ngrok-free.dev',
     'https://*.ngrok.io',
     'http://localhost:8000',
@@ -31,7 +45,9 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
-# Application definition
+# =============================================================================
+# Application Definition
+# =============================================================================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -51,6 +67,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,111 +98,101 @@ TEMPLATES = [
 WSGI_APPLICATION = 'local_elections.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+# =============================================================================
+# Database Configuration (Neon PostgreSQL via DATABASE_URL)
+# =============================================================================
 
-# # SQLite for development - easy to switch to PostgreSQL for production
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-# PostgreSQL configuration (uncomment for production)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'local_elections',
-#         'USER': 'your_db_user',
-#         'PASSWORD': 'your_db_password',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
-import os
-import dj_database_url
-
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
+    # Production: Use Neon PostgreSQL via DATABASE_URL
     DATABASES = {
-        "default": dj_database_url.parse(
+        'default': dj_database_url.parse(
             DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True
+            conn_health_checks=True,
+            ssl_require=True,
         )
     }
 else:
+    # Development: Use SQLite
     DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+# =============================================================================
+# Password Validation
+# =============================================================================
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 
+# =============================================================================
 # Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
+# =============================================================================
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Asia/Kolkata'  # Indian Standard Time for local elections
-
 USE_I18N = True
-
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
+# =============================================================================
+# Static Files (WhiteNoise for Render)
+# =============================================================================
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Media files (user uploads)
-MEDIA_URL = 'media/'
+# WhiteNoise configuration for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+# =============================================================================
+# Media Files (User Uploads)
+# =============================================================================
+
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+# =============================================================================
+# Default Primary Key
+# =============================================================================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Crispy Forms configuration
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-CRISPY_TEMPLATE_PACK = "bootstrap5"
+# =============================================================================
+# Crispy Forms Configuration
+# =============================================================================
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
-# Login settings
+# =============================================================================
+# Authentication Settings
+# =============================================================================
+
 LOGIN_URL = '/admin/login/'
 LOGIN_REDIRECT_URL = '/'
 
 
-# Messages framework - use Bootstrap alert classes
+# =============================================================================
+# Messages Framework
+# =============================================================================
+
 from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.DEBUG: 'alert-secondary',
@@ -196,16 +203,33 @@ MESSAGE_TAGS = {
 }
 
 
-# Session settings
+# =============================================================================
+# Session Settings
+# =============================================================================
+
 SESSION_COOKIE_AGE = 3600  # 1 hour
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 
-# Security settings (enable these in production)
+# =============================================================================
+# Production Security Settings
+# =============================================================================
+
 if not DEBUG:
+    # HTTPS/SSL settings
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # Cookie security
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # Security headers
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True
-
+    
+    # HSTS (uncomment after confirming HTTPS works)
+    # SECURE_HSTS_SECONDS = 31536000  # 1 year
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True

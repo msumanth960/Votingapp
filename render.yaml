@@ -1,0 +1,27 @@
+# Render Blueprint for Local Elections Voting System
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: local-elections
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn local_elections.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: elections-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+
+databases:
+  - name: elections-db
+    plan: free  # Change to starter/standard for production
+    databaseName: local_elections
+    user: elections_user
+
