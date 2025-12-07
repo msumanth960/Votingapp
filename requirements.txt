@@ -22,4 +22,16 @@ python-decouple>=3.8
 psycopg2-binary
 dj-database-url
 
+gunicorn
 
+# For production
+whitenoise
+
+# For production
+gunicorn
+
+# For production
+gunicorn
+
+# For production
+gunicorn
