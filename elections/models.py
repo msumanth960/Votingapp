@@ -94,7 +94,7 @@ class Village(models.Model):
         verbose_name_plural = 'Villages'
 
     def __str__(self):
-        return f"{self.name} ({self.mandal.name})"
+        return f"{self.name} ({self.mandal.name}, {self.mandal.district.name})"
 
     @property
     def full_location(self):
@@ -133,9 +133,10 @@ class Ward(models.Model):
         verbose_name_plural = 'Wards'
 
     def __str__(self):
+        village_info = f"{self.village.name}, {self.village.mandal.district.name}"
         if self.name:
-            return f"Ward {self.number} - {self.name} ({self.village.name})"
-        return f"Ward {self.number} - {self.village.name}"
+            return f"Ward {self.number} - {self.name} ({village_info})"
+        return f"Ward {self.number} ({village_info})"
 
 
 # ==============================================================================
