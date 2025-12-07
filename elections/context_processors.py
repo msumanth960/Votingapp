@@ -4,11 +4,14 @@ Context processors for the Elections app.
 These make certain data available to all templates automatically.
 """
 
-from django.db import OperationalError, ProgrammingError
+from django.db import DatabaseError
 
 
 class DefaultSiteSettings:
-    """Default settings used when database table doesn't exist yet."""
+    """
+    Default settings used when database is unavailable.
+    Prevents template rendering failures during migrations or DB issues.
+    """
     site_name = "Local Elections"
     site_tagline = "Voting System"
     footer_text = "Gram Panchayat Elections Management"
@@ -26,16 +29,15 @@ def site_settings(request):
         {{ site_settings.site_tagline }}
         {{ site_settings.footer_text }}
     
-    Handles cases where the database table doesn't exist yet.
+    Handles database exceptions gracefully to prevent 500 errors.
     """
     try:
         from .models import SiteSettings
-        settings = SiteSettings.get_settings()
-    except (OperationalError, ProgrammingError):
-        # Table doesn't exist yet (before migrations)
-        settings = DefaultSiteSettings()
-    
-    return {
-        'site_settings': settings
-    }
-
+        return {'site_settings': SiteSettings.get_settings()}
+    except DatabaseError:
+        # Catches all DB exceptions: OperationalError, ProgrammingError,
+        # IntegrityError, DataError, etc.
+        return {'site_settings': DefaultSiteSettings()}
+    except Exception:
+        # Fallback for any unexpected errors (import issues, etc.)
+        return {'site_settings': DefaultSiteSettings()}
