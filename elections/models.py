@@ -332,6 +332,11 @@ class Candidate(models.Model):
         blank=True,
         help_text="Brief biography of the candidate (optional)"
     )
+    promises_csv = models.TextField(
+        verbose_name="Welfare activities / promises (comma-separated)",
+        blank=True,
+        help_text="Example: Free drinking water, Road repairs, Street lights, Women empowerment programs"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -345,6 +350,16 @@ class Candidate(models.Model):
         if self.ward:
             return f"{self.full_name} ({position}) - {self.village.name}, Ward {self.ward.number}"
         return f"{self.full_name} ({position}) - {self.village.name}"
+
+    @property
+    def promises_list(self):
+        """
+        Returns a clean list of promises from the comma-separated text.
+        Trims whitespace and skips empty entries.
+        """
+        if not self.promises_csv:
+            return []
+        return [p.strip() for p in self.promises_csv.split(',') if p.strip()]
 
     def clean(self):
         """

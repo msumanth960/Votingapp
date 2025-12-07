@@ -175,6 +175,10 @@ class CandidateAdmin(admin.ModelAdmin):
         ('Election & Location', {
             'fields': ('election', 'village', 'ward')
         }),
+        ('Promises & Welfare Activities', {
+            'fields': ('promises_csv',),
+            'description': 'Enter welfare activities/promises separated by commas'
+        }),
         ('Additional Info', {
             'fields': ('party_name', 'symbol', 'photo', 'bio'),
             'classes': ('collapse',)
