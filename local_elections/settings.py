@@ -23,11 +23,13 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-pro
 # DEBUG: False in production (Render sets this)
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-# ALLOWED_HOSTS: Add your Render domain
+# ALLOWED_HOSTS: Add your Render domain and custom domain
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.onrender.com',  # Allows all Render subdomains
+    'netisangramam.com',
+    'www.netisangramam.com',
 ]
 
 # Add custom domain from environment if set
@@ -35,9 +37,13 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-# CSRF trusted origins for Render and other proxies
+# CSRF trusted origins for Render, custom domain, and other proxies
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
+    'https://netisangramam.com',
+    'https://www.netisangramam.com',
+    'http://netisangramam.com',
+    'http://www.netisangramam.com',
     'https://*.ngrok-free.dev',
     'https://*.ngrok.io',
     'http://localhost:8000',
