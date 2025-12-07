@@ -133,7 +133,7 @@ class Ward(models.Model):
         verbose_name_plural = 'Wards'
 
     def __str__(self):
-        village_info = f"{self.village.name}, {self.village.mandal.district.name}"
+        village_info = f"{self.village.name}, {self.village.mandal.name}, {self.village.mandal.district.name}"
         if self.name:
             return f"Ward {self.number} - {self.name} ({village_info})"
         return f"Ward {self.number} ({village_info})"
