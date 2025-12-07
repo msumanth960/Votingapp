@@ -2,6 +2,7 @@
 Models for the Local Elections Voting System.
 
 This module defines the data models for:
+- Site Settings (dynamic configuration)
 - Location hierarchy: District -> Mandal -> Village -> Ward
 - Election and Candidates
 - Voters and Votes
@@ -12,6 +13,69 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.utils import timezone
 import re
+
+
+# ==============================================================================
+# Site Settings Model (Singleton)
+# ==============================================================================
+
+class SiteSettings(models.Model):
+    """
+    Singleton model for site-wide settings.
+    Only one instance should exist - enforced by the save method.
+    """
+    site_name = models.CharField(
+        max_length=200,
+        default="Local Elections",
+        help_text="Main site name displayed in header"
+    )
+    site_tagline = models.CharField(
+        max_length=300,
+        default="Voting System",
+        help_text="Tagline displayed below site name"
+    )
+    footer_text = models.CharField(
+        max_length=500,
+        default="Gram Panchayat Elections Management",
+        blank=True,
+        help_text="Text displayed in footer"
+    )
+    contact_email = models.EmailField(
+        blank=True,
+        help_text="Contact email (optional)"
+    )
+    contact_phone = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Contact phone number (optional)"
+    )
+    about_text = models.TextField(
+        blank=True,
+        help_text="About section text for landing page"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Site Settings"
+        verbose_name_plural = "Site Settings"
+
+    def __str__(self):
+        return f"Site Settings - {self.site_name}"
+
+    def save(self, *args, **kwargs):
+        """Ensure only one instance exists (singleton pattern)."""
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion of the singleton instance."""
+        pass
+
+    @classmethod
+    def get_settings(cls):
+        """Get or create the singleton settings instance."""
+        settings, created = cls.objects.get_or_create(pk=1)
+        return settings
 
 
 # ==============================================================================

@@ -10,7 +10,38 @@ This module configures the admin interface for managing:
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Count
-from .models import District, Mandal, Village, Ward, Election, Candidate, Voter, Vote
+from .models import District, Mandal, Village, Ward, Election, Candidate, Voter, Vote, SiteSettings
+
+
+# ==============================================================================
+# Site Settings Admin (Singleton)
+# ==============================================================================
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    """Admin configuration for Site Settings (singleton)."""
+    list_display = ['site_name', 'site_tagline', 'updated_at']
+    fieldsets = (
+        ('Site Identity', {
+            'fields': ('site_name', 'site_tagline', 'footer_text')
+        }),
+        ('Contact Information', {
+            'fields': ('contact_email', 'contact_phone'),
+            'classes': ('collapse',)
+        }),
+        ('Content', {
+            'fields': ('about_text',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def has_add_permission(self, request):
+        """Only allow one instance - disable add if it exists."""
+        return not SiteSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        """Prevent deletion of the singleton instance."""
+        return False
 
 
 # ==============================================================================
