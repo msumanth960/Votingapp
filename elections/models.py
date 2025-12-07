@@ -406,6 +406,11 @@ class Voter(models.Model):
     Represents a voter identified by their mobile number.
     Mobile numbers must be unique to ensure one-person-one-vote.
     """
+    name = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Full name of the voter"
+    )
     mobile_number = models.CharField(
         max_length=10,
         unique=True,
@@ -419,7 +424,8 @@ class Voter(models.Model):
         verbose_name_plural = 'Voters'
 
     def __str__(self):
-        # Mask the mobile number for privacy (show only last 4 digits)
+        if self.name:
+            return f"{self.name} (******{self.mobile_number[-4:]})"
         return f"Voter ******{self.mobile_number[-4:]}"
 
     @property
@@ -479,6 +485,10 @@ class Vote(models.Model):
         blank=True,
         help_text="Ward Member candidate voted for"
     )
+    family_vote_count = models.PositiveIntegerField(
+        default=1,
+        help_text="Number of family members voting together (default: 1)"
+    )
     ip_address = models.GenericIPAddressField(
         null=True,
         blank=True,
@@ -498,6 +508,8 @@ class Vote(models.Model):
         verbose_name_plural = 'Votes'
 
     def __str__(self):
+        if self.family_vote_count > 1:
+            return f"Vote by {self.voter} ({self.family_vote_count} family members) in {self.election.name}"
         return f"Vote by {self.voter} in {self.election.name} - {self.village.name}"
 
     def clean(self):

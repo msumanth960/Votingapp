@@ -209,10 +209,11 @@ class CandidateAdmin(admin.ModelAdmin):
 @admin.register(Voter)
 class VoterAdmin(admin.ModelAdmin):
     """Admin configuration for Voter model."""
-    list_display = ['id', 'masked_mobile_display', 'created_at', 'vote_count']
-    search_fields = ['mobile_number']
+    list_display = ['id', 'name', 'masked_mobile_display', 'created_at', 'vote_count']
+    search_fields = ['name', 'mobile_number']
     ordering = ['-created_at']
     readonly_fields = ['created_at']
+    list_editable = ['name']
 
     def masked_mobile_display(self, obj):
         """Display masked mobile number for privacy."""
@@ -232,22 +233,24 @@ class VoteAdmin(admin.ModelAdmin):
     Votes are read-only to prevent tampering.
     """
     list_display = [
-        'id', 'election', 'village', 'ward', 'get_voter_masked',
-        'sarpanch_candidate', 'ward_member_candidate', 'created_at', 'ip_address'
+        'id', 'election', 'village', 'ward', 'get_voter_info',
+        'sarpanch_candidate', 'ward_member_candidate', 'family_vote_count', 'created_at'
     ]
-    list_filter = ['election', 'village__mandal__district', 'village__mandal', 'village', 'ward', 'created_at']
-    search_fields = ['voter__mobile_number', 'ip_address']
+    list_filter = ['election', 'village__mandal__district', 'village__mandal', 'village', 'ward', 'family_vote_count', 'created_at']
+    search_fields = ['voter__name', 'voter__mobile_number', 'ip_address']
     ordering = ['-created_at']
     readonly_fields = [
         'election', 'village', 'ward', 'voter', 'sarpanch_candidate',
-        'ward_member_candidate', 'ip_address', 'user_agent', 'created_at'
+        'ward_member_candidate', 'family_vote_count', 'ip_address', 'user_agent', 'created_at'
     ]
     date_hierarchy = 'created_at'
 
-    def get_voter_masked(self, obj):
-        """Display masked voter mobile number."""
+    def get_voter_info(self, obj):
+        """Display voter name and masked mobile number."""
+        if obj.voter.name:
+            return f"{obj.voter.name} ({obj.voter.masked_mobile})"
         return obj.voter.masked_mobile
-    get_voter_masked.short_description = 'Voter'
+    get_voter_info.short_description = 'Voter'
 
     def has_add_permission(self, request):
         """Prevent adding votes through admin."""

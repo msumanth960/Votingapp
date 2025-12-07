@@ -89,7 +89,8 @@ class VotingForm(forms.Form):
     - Sarpanch candidate selection
     - Ward selection
     - Ward Member candidate selection
-    - Mobile number for voter identification
+    - Voter name and mobile number
+    - Family vote count
     """
     sarpanch_candidate = forms.ModelChoiceField(
         queryset=Candidate.objects.none(),
@@ -122,6 +123,16 @@ class VotingForm(forms.Form):
         help_text="Select one Ward Member candidate"
     )
     
+    voter_name = forms.CharField(
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'Enter your full name'
+        }),
+        help_text="Your name (optional but recommended)"
+    )
+    
     mobile_number = forms.CharField(
         max_length=10,
         min_length=10,
@@ -134,6 +145,18 @@ class VotingForm(forms.Form):
             'maxlength': '10'
         }),
         help_text="Your mobile number is used only to ensure one-person-one-vote and will not be publicly exposed."
+    )
+    
+    family_vote_count = forms.IntegerField(
+        min_value=1,
+        max_value=20,
+        initial=1,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'min': '1',
+            'max': '20'
+        }),
+        help_text="Number of family members voting together (including yourself)"
     )
 
     def __init__(self, village=None, election=None, *args, **kwargs):

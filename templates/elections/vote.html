@@ -361,14 +361,32 @@
                     </div>
                 </div>
                 
-                <!-- Mobile Number Section -->
+                <!-- Voter Details Section -->
                 <div class="mobile-section">
                     <h5 class="mb-3">
-                        <i class="bi bi-phone me-2"></i>
-                        Verify Your Identity
+                        <i class="bi bi-person-vcard me-2"></i>
+                        Your Details
                     </h5>
+                    
+                    <!-- Voter Name -->
                     <div class="mb-3">
-                        <label for="mobile_number" class="form-label">Mobile Number</label>
+                        <label for="voter_name" class="form-label">Full Name <small class="text-muted">(Optional)</small></label>
+                        <input type="text" 
+                               name="voter_name" 
+                               id="voter_name" 
+                               class="form-control form-control-lg {% if form.voter_name.errors %}is-invalid{% endif %}"
+                               placeholder="Enter your full name"
+                               value="{{ form.voter_name.value|default:'' }}">
+                        {% if form.voter_name.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.voter_name.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Mobile Number -->
+                    <div class="mb-3">
+                        <label for="mobile_number" class="form-label">Mobile Number <span class="text-danger">*</span></label>
                         <input type="tel" 
                                name="mobile_number" 
                                id="mobile_number" 
@@ -385,9 +403,33 @@
                         </div>
                         {% endif %}
                     </div>
+                    
+                    <!-- Family Vote Count -->
+                    <div class="mb-3">
+                        <label for="family_vote_count" class="form-label">
+                            <i class="bi bi-people-fill me-1"></i>Family Members Voting
+                        </label>
+                        <div class="input-group">
+                            <input type="number" 
+                                   name="family_vote_count" 
+                                   id="family_vote_count" 
+                                   class="form-control {% if form.family_vote_count.errors %}is-invalid{% endif %}"
+                                   min="1"
+                                   max="20"
+                                   value="{{ form.family_vote_count.value|default:'1' }}">
+                            <span class="input-group-text">members</span>
+                        </div>
+                        <small class="text-muted">How many family members are voting together (including yourself)?</small>
+                        {% if form.family_vote_count.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.family_vote_count.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
                     <p class="privacy-notice mb-0">
                         <i class="bi bi-shield-lock me-1"></i>
-                        Your mobile number is used only to ensure one-person-one-vote and will not be publicly exposed.
+                        Your information is used only to ensure one-person-one-vote and will not be publicly exposed.
                     </p>
                 </div>
             </div>

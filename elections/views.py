@@ -178,6 +178,8 @@ class VotingView(View):
     def process_vote(self, request, form):
         """Process a valid vote submission."""
         mobile_number = form.cleaned_data['mobile_number']
+        voter_name = form.cleaned_data.get('voter_name', '')
+        family_vote_count = form.cleaned_data.get('family_vote_count', 1)
         sarpanch_candidate = form.cleaned_data['sarpanch_candidate']
         ward = form.cleaned_data['ward']
         ward_member_candidate = form.cleaned_data['ward_member_candidate']
@@ -186,6 +188,11 @@ class VotingView(View):
         voter, created = Voter.objects.get_or_create(
             mobile_number=mobile_number
         )
+        
+        # Update voter name if provided
+        if voter_name and (not voter.name or created):
+            voter.name = voter_name
+            voter.save()
 
         # Check if voter has already voted in this election for this village
         existing_vote = Vote.objects.filter(
@@ -211,6 +218,7 @@ class VotingView(View):
                 voter=voter,
                 sarpanch_candidate=sarpanch_candidate,
                 ward_member_candidate=ward_member_candidate,
+                family_vote_count=family_vote_count,
                 ip_address=get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:500]
             )
