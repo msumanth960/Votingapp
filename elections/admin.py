@@ -162,15 +162,16 @@ class ElectionAdmin(admin.ModelAdmin):
 @admin.register(Candidate)
 class CandidateAdmin(admin.ModelAdmin):
     """Admin configuration for Candidate model."""
-    list_display = ['full_name', 'position_type', 'village', 'ward', 'election', 'party_name', 'vote_count']
-    list_filter = ['election', 'position_type', 'village__mandal__district', 'village__mandal', 'village']
+    list_display = ['full_name', 'position_type', 'village', 'ward', 'election', 'party_name', 'is_active', 'vote_count']
+    list_filter = ['is_active', 'election', 'position_type', 'village__mandal__district', 'village__mandal', 'village']
     search_fields = ['full_name', 'party_name', 'village__name']
     ordering = ['election', 'village', 'position_type', 'full_name']
     autocomplete_fields = ['election', 'village', 'ward']
     readonly_fields = ['created_at', 'updated_at', 'vote_count']
+    list_editable = ['is_active']  # Quick toggle from list view
     fieldsets = (
         (None, {
-            'fields': ('full_name', 'position_type')
+            'fields': ('full_name', 'position_type', 'is_active')
         }),
         ('Election & Location', {
             'fields': ('election', 'village', 'ward')
@@ -188,6 +189,19 @@ class CandidateAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+    actions = ['activate_candidates', 'deactivate_candidates']
+
+    def activate_candidates(self, request, queryset):
+        """Bulk activate selected candidates."""
+        count = queryset.update(is_active=True)
+        self.message_user(request, f'{count} candidate(s) activated.')
+    activate_candidates.short_description = "Activate selected candidates"
+
+    def deactivate_candidates(self, request, queryset):
+        """Bulk deactivate selected candidates."""
+        count = queryset.update(is_active=False)
+        self.message_user(request, f'{count} candidate(s) deactivated.')
+    deactivate_candidates.short_description = "Deactivate selected candidates"
 
     def vote_count(self, obj):
         """Display the number of votes received by this candidate."""

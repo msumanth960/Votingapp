@@ -337,6 +337,11 @@ class Candidate(models.Model):
         blank=True,
         help_text="Example: Free drinking water, Road repairs, Street lights, Women empowerment programs"
     )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Active",
+        help_text="Uncheck to disable this candidate from voting (e.g., if withdrawn)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -347,9 +352,10 @@ class Candidate(models.Model):
 
     def __str__(self):
         position = self.get_position_type_display()
+        status = "" if self.is_active else " [INACTIVE]"
         if self.ward:
-            return f"{self.full_name} ({position}) - {self.village.name}, Ward {self.ward.number}"
-        return f"{self.full_name} ({position}) - {self.village.name}"
+            return f"{self.full_name} ({position}) - {self.village.name}, Ward {self.ward.number}{status}"
+        return f"{self.full_name} ({position}) - {self.village.name}{status}"
 
     @property
     def promises_list(self):

@@ -144,7 +144,8 @@ class VotingView(View):
             'sarpanch_candidates': Candidate.objects.filter(
                 election=self.election,
                 village=self.village,
-                position_type=Candidate.POSITION_SARPANCH
+                position_type=Candidate.POSITION_SARPANCH,
+                is_active=True  # Only show active candidates
             ).order_by('full_name'),
             'wards': Ward.objects.filter(village=self.village).order_by('number'),
         }
@@ -169,7 +170,8 @@ class VotingView(View):
             'sarpanch_candidates': Candidate.objects.filter(
                 election=self.election,
                 village=self.village,
-                position_type=Candidate.POSITION_SARPANCH
+                position_type=Candidate.POSITION_SARPANCH,
+                is_active=True  # Only show active candidates
             ).order_by('full_name'),
             'wards': Ward.objects.filter(village=self.village).order_by('number'),
         }
@@ -288,7 +290,8 @@ def load_ward_candidates(request):
     candidates = Candidate.objects.filter(
         ward_id=ward_id,
         election_id=election_id,
-        position_type=Candidate.POSITION_WARD_MEMBER
+        position_type=Candidate.POSITION_WARD_MEMBER,
+        is_active=True  # Only show active candidates
     ).order_by('full_name')
     
     data = [{

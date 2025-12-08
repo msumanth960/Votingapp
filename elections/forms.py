@@ -173,11 +173,12 @@ class VotingForm(forms.Form):
         self.election = election
         
         if village and election:
-            # Set Sarpanch candidates queryset
+            # Set Sarpanch candidates queryset (only active)
             self.fields['sarpanch_candidate'].queryset = Candidate.objects.filter(
                 election=election,
                 village=village,
-                position_type=Candidate.POSITION_SARPANCH
+                position_type=Candidate.POSITION_SARPANCH,
+                is_active=True
             ).order_by('full_name')
             
             # Set Wards queryset
@@ -185,14 +186,15 @@ class VotingForm(forms.Form):
                 village=village
             ).order_by('number')
         
-        # If ward is selected, filter ward member candidates
+        # If ward is selected, filter ward member candidates (only active)
         if 'ward' in self.data:
             try:
                 ward_id = int(self.data.get('ward'))
                 self.fields['ward_member_candidate'].queryset = Candidate.objects.filter(
                     election=election,
                     ward_id=ward_id,
-                    position_type=Candidate.POSITION_WARD_MEMBER
+                    position_type=Candidate.POSITION_WARD_MEMBER,
+                    is_active=True
                 ).order_by('full_name')
             except (ValueError, TypeError):
                 pass
