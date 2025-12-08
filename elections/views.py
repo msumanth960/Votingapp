@@ -299,6 +299,7 @@ def load_ward_candidates(request):
         'full_name': c.full_name,
         'party_name': c.party_name or 'Independent',
         'symbol': c.symbol or '-',
+        'symbol_url': c.symbol_url or '',
         'promises': c.promises_list  # Include promises list
     } for c in candidates]
     

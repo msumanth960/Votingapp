@@ -181,7 +181,7 @@ class CandidateAdmin(admin.ModelAdmin):
             'description': 'Enter welfare activities/promises separated by commas'
         }),
         ('Additional Info', {
-            'fields': ('party_name', 'symbol', 'photo', 'bio'),
+            'fields': ('party_name', 'symbol', 'symbol_url', 'photo', 'bio'),
             'classes': ('collapse',)
         }),
         ('Metadata', {

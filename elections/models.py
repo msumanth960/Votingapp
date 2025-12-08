@@ -320,7 +320,12 @@ class Candidate(models.Model):
     symbol = models.CharField(
         max_length=100,
         blank=True,
-        help_text="Election symbol (optional)"
+        help_text="Election symbol name (optional, e.g., 'Bicycle', 'Fan')"
+    )
+    symbol_url = models.URLField(
+        max_length=500,
+        blank=True,
+        help_text="Direct URL to the election symbol image (optional)"
     )
     photo = models.ImageField(
         upload_to='candidates/',
@@ -366,6 +371,7 @@ class Candidate(models.Model):
         if not self.promises_csv:
             return []
         return [p.strip() for p in self.promises_csv.split(',') if p.strip()]
+
 
     def clean(self):
         """
