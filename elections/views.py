@@ -298,7 +298,8 @@ def load_ward_candidates(request):
         'id': c.id,
         'full_name': c.full_name,
         'party_name': c.party_name or 'Independent',
-        'symbol': c.symbol or '-'
+        'symbol': c.symbol or '-',
+        'promises': c.promises_list  # Include promises list
     } for c in candidates]
     
     return JsonResponse(data, safe=False)
