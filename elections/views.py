@@ -273,7 +273,10 @@ def load_villages(request):
     AJAX endpoint to load villages for a selected mandal.
     """
     mandal_id = request.GET.get('mandal_id')
-    villages = Village.objects.filter(mandal_id=mandal_id).order_by('name')
+    villages = Village.objects.filter(
+        mandal_id=mandal_id,
+        is_active=True  # Only show active villages
+    ).order_by('name')
     return JsonResponse(list(villages.values('id', 'name')), safe=False)
 
 

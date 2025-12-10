@@ -70,12 +70,13 @@ class LocationSelectionForm(forms.Form):
             except (ValueError, TypeError):
                 pass
         
-        # If mandal is provided, filter villages
+        # If mandal is provided, filter villages (only active)
         if 'mandal' in self.data:
             try:
                 mandal_id = int(self.data.get('mandal'))
                 self.fields['village'].queryset = Village.objects.filter(
-                    mandal_id=mandal_id
+                    mandal_id=mandal_id,
+                    is_active=True  # Only show active villages
                 ).order_by('name')
             except (ValueError, TypeError):
                 pass

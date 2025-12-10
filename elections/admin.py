@@ -81,12 +81,23 @@ class MandalAdmin(admin.ModelAdmin):
 @admin.register(Village)
 class VillageAdmin(admin.ModelAdmin):
     """Admin configuration for Village model."""
-    list_display = ['name', 'mandal', 'get_district', 'ward_count', 'created_at']
-    list_filter = ['mandal__district', 'mandal']
+    list_display = ['name', 'mandal', 'get_district', 'ward_count', 'is_active', 'created_at']
+    list_filter = ['is_active', 'mandal__district', 'mandal']
     search_fields = ['name', 'mandal__name', 'mandal__district__name']
     ordering = ['mandal__district__name', 'mandal__name', 'name']
     autocomplete_fields = ['mandal']
     readonly_fields = ['created_at', 'updated_at']
+    list_editable = ['is_active']  # Quick toggle from list view
+    fieldsets = (
+        (None, {
+            'fields': ('mandal', 'name', 'is_active')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    actions = ['activate_villages', 'deactivate_villages']
 
     def get_district(self, obj):
         """Display the district for this village."""
@@ -98,6 +109,18 @@ class VillageAdmin(admin.ModelAdmin):
         """Display the number of wards in this village."""
         return obj.wards.count()
     ward_count.short_description = 'Wards'
+
+    def activate_villages(self, request, queryset):
+        """Bulk activate selected villages."""
+        count = queryset.update(is_active=True)
+        self.message_user(request, f'{count} village(s) activated.')
+    activate_villages.short_description = "Activate selected villages"
+
+    def deactivate_villages(self, request, queryset):
+        """Bulk deactivate selected villages."""
+        count = queryset.update(is_active=False)
+        self.message_user(request, f'{count} village(s) deactivated.')
+    deactivate_villages.short_description = "Deactivate selected villages"
 
 
 @admin.register(Ward)

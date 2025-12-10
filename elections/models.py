@@ -148,6 +148,11 @@ class Village(models.Model):
         max_length=100,
         help_text="Name of the village/gram panchayat"
     )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Active",
+        help_text="Uncheck to disable this village from voting (e.g., if not participating in election)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -158,7 +163,8 @@ class Village(models.Model):
         verbose_name_plural = 'Villages'
 
     def __str__(self):
-        return f"{self.name} ({self.mandal.name}, {self.mandal.district.name})"
+        status = "" if self.is_active else " [INACTIVE]"
+        return f"{self.name} ({self.mandal.name}, {self.mandal.district.name}){status}"
 
     @property
     def full_location(self):
